@@ -140,17 +140,24 @@ export function hangarScreen(app, params) {
         const ch = h('button', { class: 'chip', 'aria-label': 'Remove ' + id }, thumbCanvas('stage', findPart('stage', id)));
         if (b.stages.length > 1) ch.append(h('span', { class: 'x', html: ICON.close }));
         onTap(ch, () => {
-          if (b.stages.length <= 1) { sfx.locked(); say('Your rocket needs at least one stage!'); return; }
+          if (b.stages.length <= 1) { sfx.locked(); say('Your rocket needs one stage. Tap a different stage below to swap it!'); return; }
           b.stages.splice(i, 1); sfx.remove(); say('Stage off!'); changed();
         });
         stack.append(ch);
       });
       tiles.append(stack);
-      tiles.append(h('div', { class: 'subhead' }, 'Tap to add a stage'));
+      tiles.append(h('div', { class: 'subhead' }, b.stages.length >= lim ? 'Tap to swap a stage' : 'Tap to add a stage'));
       for (const it of CATALOG.stage) {
         const n = b.stages.filter(s => s === it.id).length;
         tiles.append(tile('stage', it, false, () => {
-          if (b.stages.length >= lim) { sfx.locked(); say(lim < 4 ? 'Your rocket is as tall as it can be for now! Fly more missions to stack more stages.' : 'Your rocket is as tall as it can be!'); return; }
+          if (b.stages.length >= lim) {
+            // Rocket is full: swap the smallest stage for the one tapped.
+            const top = b.stages.length - 1;
+            if (b.stages[top] === it.id && b.stages.every(x => x === it.id)) { sfx.pick(); say(it.name + '!'); bounce = 1; return; }
+            b.stages[top] = it.id; sortStages(b); sfx.pop();
+            say(lim === 1 ? `Swapped! Now you have the ${it.name}!` : `Swapped in the ${it.name}!`);
+            bounce = 1; changed(); return;
+          }
           b.stages.push(it.id); sortStages(b); sfx.pop(); say(it.name + '!'); bounce = 1; changed();
         }, n ? h('span', { class: 'count' }, String(n)) : null));
       }

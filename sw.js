@@ -1,6 +1,6 @@
 // RocketKids service worker: caches everything so the game works offline.
 // Bump VERSION whenever you change any file so iPads pick up the update.
-const VERSION = 'rocketkids-v1';
+const VERSION = 'rocketkids-v2';
 const FILES = [
   './',
   './index.html',

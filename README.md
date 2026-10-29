@@ -23,7 +23,7 @@ Tip: turn on **Guided Access** (Settings → Accessibility → Guided Access) to
 ## How to play
 
 - **Map**: pick a mission. Locked missions open one at a time. **Rocket Park** (bottom right) is free play with any rocket.
-- **Hangar**: tap the picture tabs to pick capsules, stages, boosters, fins, parachutes, cargo, colors, patterns, styles and flame colors. Tap a stage to add it, tap a stage in "Your stages" to remove it (stages sort themselves, biggest at the bottom). The **power meter** on the left fills up as the rocket gets stronger; the yellow mark is the mission goal. Every tap is spoken out loud.
+- **Hangar**: tap the picture tabs to pick capsules, stages, boosters, fins, parachutes, cargo, colors, patterns, styles and flame colors. Tap a stage to add it; when the rocket is full, tapping a stage swaps it in for the smallest one. Tap a stage in "Your stages" to remove it (stages sort themselves, biggest at the bottom). The **power meter** on the left fills up as the rocket gets stronger; the yellow mark is the mission goal. Every tap is spoken out loud.
 - **Flying**: hold the big **fire** button to boost, use the **arrows** to steer toward stars, and tap the big **green button** when it pops up (drop a stage, tip over, parachute, release the satellite, take a picture, plant the flag, fly home). If the child doesn't tap in time, the game slows down and helps.
 - **BOOM**: the red starburst button makes a silly cartoon explosion on purpose. The astronaut always floats home safely.
 
