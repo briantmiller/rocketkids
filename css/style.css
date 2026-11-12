@@ -208,3 +208,52 @@ svg { display: block; width: 100%; height: 100%; }
 .rotate-tip { position: absolute; bottom: calc(12px + var(--safe-b)); left: 50%; translate: -50% 0; font-size: 14px; color: #B9C6F2; pointer-events: none; }
 .toast { position: absolute; left: 50%; top: 40%; translate: -50% -50%; font-size: clamp(40px, 8vw, 90px); color: var(--sun); -webkit-text-stroke: 4px var(--ink); paint-order: stroke fill; text-shadow: 0 8px 0 var(--ink); pointer-events: none; animation: toast 1.6s ease-out forwards; white-space: nowrap; }
 @keyframes toast { 0% { scale: .3; opacity: 0; } 15% { scale: 1.15; opacity: 1; } 25% { scale: 1; } 80% { opacity: 1; } 100% { opacity: 0; translate: -50% -80%; } }
+
+/* ---------- v2 additions ---------- */
+.h-preview .dice { position: absolute; right: 12px; top: 12px; width: 72px; height: 72px; border-radius: 20px; }
+.h-preview .dice .ic { width: 46px; height: 46px; }
+.tile .needstars { position: absolute; left: 50%; bottom: 4px; translate: -50% 0; display: flex; align-items: center; gap: 3px; background: var(--ink); color: var(--sun); border-radius: 12px; padding: 2px 8px 2px 4px; font-size: 16px; pointer-events: none; }
+.tile .needstars i { width: 18px; height: 18px; display: block; }
+.games-btn { position: absolute; right: calc(22px + var(--safe-r)); bottom: calc(158px + var(--safe-b)); width: 120px; height: 120px; border-radius: 50%; flex-direction: column; gap: 0; font-size: 15px; }
+.games-btn .ic { width: 64px; height: 64px; }
+
+/* Space games: level picker */
+.arcade { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 14px; padding: calc(100px + var(--safe-t)) calc(22px + var(--safe-r)) calc(18px + var(--safe-b)) calc(22px + var(--safe-l)); overflow-y: auto; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+.arcade-head { position: absolute; top: calc(20px + var(--safe-t)); left: 0; right: 0; text-align: center; font-size: clamp(28px, 4.5vw, 44px); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; pointer-events: none; }
+.arcade-total { position: absolute; top: calc(24px + var(--safe-t)); right: calc(24px + var(--safe-r)); display: flex; align-items: center; gap: 6px; font-size: 28px; background: var(--panel); border: 4px solid var(--ink); border-radius: 22px; padding: 6px 14px 6px 8px; }
+.arcade-total i { width: 34px; height: 34px; display: block; }
+.game-row { background: rgba(30,45,99,.88); border: 4px solid var(--ink); border-radius: 26px; padding: 14px; display: flex; align-items: center; gap: 16px; }
+.game-row .gicon { flex: none; width: 110px; height: 110px; border-radius: 26px; padding: 12px; flex-direction: column; }
+.game-row .gname { font-size: 15px; text-align: center; margin-top: 4px; color: #DDE6FF; width: 110px; }
+.levels { flex: 1; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 12px; }
+.lvl { aspect-ratio: 1; border-radius: 20px; font-size: clamp(22px, 3.2vw, 34px); flex-direction: column; gap: 0; position: relative; min-width: 0; }
+.lvl .st { display: flex; gap: 0; position: absolute; bottom: 5px; left: 0; right: 0; justify-content: center; }
+.lvl .st i { width: 30%; max-width: 20px; aspect-ratio: 1; display: block; }
+.lvl .n { translate: 0 -18%; }
+.lvl.locked { --c: #4A5A8F; --d: #2A3566; color: rgba(255,255,255,.35); }
+.lvl.locked .lk { position: absolute; inset: 24%; }
+.lvl.next { animation: pulse 1.2s ease-in-out infinite; }
+@media (orientation: portrait) {
+  .game-row { flex-direction: column; align-items: stretch; }
+  .game-row .ghead { display: flex; align-items: center; gap: 14px; }
+  .game-row .gicon { width: 84px; height: 84px; }
+  .game-row .gname { width: auto; font-size: 24px; margin: 0; }
+  .levels { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; }
+  .lvl { border-radius: 16px; }
+}
+@media (orientation: portrait) and (max-width: 640px) {
+  .levels { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* Mini-game HUD */
+.hud .jumpb { right: calc(28px + var(--safe-r)); bottom: calc(28px + var(--safe-b)); width: 190px; height: 190px; border-radius: 50%; }
+.hud .jumpb .ic { width: 110px; height: 110px; }
+.hud .hearts { position: absolute; left: calc(110px + var(--safe-l)); top: calc(26px + var(--safe-t)); display: flex; gap: 6px; }
+.hud .hearts i { width: 46px; height: 46px; display: block; }
+.hud .lvlchip { position: absolute; right: calc(24px + var(--safe-r)); top: calc(24px + var(--safe-t)); background: rgba(20,32,74,.85); border: 4px solid var(--ink); border-radius: 20px; padding: 6px 14px; font-size: 24px; display: flex; align-items: center; gap: 8px; }
+.hud .lvlchip i { width: 30px; height: 30px; display: block; }
+.hud .progress { position: absolute; left: 50%; translate: -50% 0; bottom: calc(14px + var(--safe-b)); width: min(46vw, 420px); height: 22px; border-radius: 12px; background: rgba(0,0,0,.4); border: 4px solid var(--ink); overflow: hidden; }
+.hud .progress b { display: block; height: 100%; background: linear-gradient(90deg, #3DDC97, #FFD23F); width: 0; }
+/* Let taps fall through the HUD to the game canvas (stars, balloons, steering by finger). */
+#ui > .hud { pointer-events: none; }
+#ui > .hud button { pointer-events: auto; }

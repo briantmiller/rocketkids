@@ -26,7 +26,7 @@ export function mapScreen(app) {
       open ? stars : h('div', { class: 'lock', html: ICON.lock }),
     );
     onTap(b, () => {
-      if (!open) { sfx.locked(); say(`Finish mission ${i} first!`); node.classList.remove('wiggle'); void node.offsetWidth; node.classList.add('wiggle'); return; }
+      if (!open) { sfx.locked(); say(['', 'Finish mission one first!', 'Finish mission two first!', 'Finish mission three first!', 'Finish mission four first!', 'Finish mission five first!', 'Finish mission six first!', 'Finish mission seven first!', 'Finish mission eight first!'][i]); node.classList.remove('wiggle'); void node.offsetWidth; node.classList.add('wiggle'); return; }
       sfx.pick();
       app.go('hangar', { mission: i });
     });
@@ -35,6 +35,7 @@ export function mapScreen(app) {
   });
   const park = btn('purple park-btn', 'park', 'Rocket Park', () => { say('Rocket Park! Build any rocket and fly for fun.'); app.go('hangar', { mission: -1 }); });
   root.append(park);
+  root.append(btn('green games-btn', 'games', 'Space Games', () => app.go('arcade')));
   const home = btn('dark round corner tl', 'home', null, () => app.go('title'));
   const gear = h('button', { class: 'btn dark round corner tr', 'aria-label': 'Grown-up settings (press and hold)' }, icon('gear'));
   onLongPress(gear, 1200, () => app.openSettings());

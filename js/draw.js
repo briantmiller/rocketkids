@@ -167,6 +167,7 @@ export function rocketLayout(b, o = {}) {
 //    boosters(bool), look (-1..1 eye direction), chute (0..1)
 export function drawRocket(c, b, o) {
   const s = o.s || 1, t = o.t || 0;
+  if (b.pilot) PILOT = b.pilot;
   const L = rocketLayout(b, o);
   const main = hex(b.color), acc = hex(b.color2);
   const style = b.style;
@@ -351,13 +352,76 @@ function window_(c, x, y, r, t, face) {
   c.beginPath(); c.arc(x - r * 0.3, y - r * 0.35, r * 0.25, 0, 7); c.fillStyle = 'rgba(255,255,255,0.8)'; c.fill();
 }
 
-export function astronautHead(c, x, y, k, t = 0) {
-  c.beginPath(); c.arc(x, y, 8 * k, 0, 7); c.fillStyle = '#FFFFFF'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = INK; c.stroke();
-  c.beginPath(); c.ellipse(x, y + 0.5 * k, 5.5 * k, 4.5 * k, 0, 0, 7); c.fillStyle = '#FFD7B5'; c.fill();
+let PILOT = 'kid';
+export function setPilot(id) { PILOT = id || 'kid'; }
+
+// Face of the chosen pilot. k=1 means a face about 11px wide.
+export function pilotFace(c, x, y, k, t = 0, who = PILOT) {
   const blink = (t % 4) < 0.12;
-  c.fillStyle = INK;
-  if (!blink) { c.beginPath(); c.arc(x - 2 * k, y - 0.5 * k, 0.9 * k, 0, 7); c.arc(x + 2 * k, y - 0.5 * k, 0.9 * k, 0, 7); c.fill(); }
-  c.beginPath(); c.arc(x, y + 1.5 * k, 2 * k, 0.1 * Math.PI, 0.9 * Math.PI); c.lineWidth = 0.9 * k; c.strokeStyle = INK; c.stroke();
+  const eyes = (dx = 2, dy = -0.5, r = 0.9, col = INK) => {
+    if (blink) return;
+    c.fillStyle = col; c.beginPath(); c.arc(x - dx * k, y + dy * k, r * k, 0, 7); c.arc(x + dx * k, y + dy * k, r * k, 0, 7); c.fill();
+  };
+  const smile = (dy = 1.5, r = 2) => { c.beginPath(); c.arc(x, y + dy * k, r * k, 0.1 * Math.PI, 0.9 * Math.PI); c.lineWidth = Math.max(0.8, 0.9 * k); c.strokeStyle = INK; c.stroke(); };
+  const oval = (col, rx = 5.5, ry = 4.5, dy = 0.5) => { c.beginPath(); c.ellipse(x, y + dy * k, rx * k, ry * k, 0, 0, 7); c.fillStyle = col; c.fill(); };
+  const tri = (ax, ay, bx, by, cx2, cy2, col) => { c.beginPath(); c.moveTo(x + ax * k, y + ay * k); c.lineTo(x + bx * k, y + by * k); c.lineTo(x + cx2 * k, y + cy2 * k); c.closePath(); c.fillStyle = col; c.fill(); };
+  c.save(); c.lineCap = 'round';
+  if (who === 'cat') {
+    tri(-5, -2, -4.2, -6.5, -1, -3.6, '#F4A259'); tri(5, -2, 4.2, -6.5, 1, -3.6, '#F4A259');
+    oval('#F4A259', 5.5, 4.4, 0.6);
+    c.beginPath(); c.ellipse(x, y + 2.2 * k, 2.6 * k, 1.9 * k, 0, 0, 7); c.fillStyle = '#FFF1E0'; c.fill();
+    eyes(2.2, -0.4, 1, '#1B4332');
+    tri(-0.8, 1, 0.8, 1, 0, 2, '#FF66C4');
+    c.strokeStyle = INK; c.lineWidth = Math.max(0.5, 0.4 * k);
+    for (const sx of [-1, 1]) { c.beginPath(); c.moveTo(x + sx * 2.4 * k, y + 2 * k); c.lineTo(x + sx * 5 * k, y + 1.4 * k); c.moveTo(x + sx * 2.4 * k, y + 2.6 * k); c.lineTo(x + sx * 5 * k, y + 3 * k); c.stroke(); }
+  } else if (who === 'dog') {
+    oval('#D9A066', 5.2, 4.6, 0.5);
+    for (const sx of [-1, 1]) { c.beginPath(); c.ellipse(x + sx * 5 * k, y + 0.5 * k, 1.8 * k, 3.6 * k, sx * 0.25, 0, 7); c.fillStyle = '#8B5E34'; c.fill(); }
+    c.beginPath(); c.ellipse(x, y + 2.2 * k, 2.8 * k, 2 * k, 0, 0, 7); c.fillStyle = '#FFF1E0'; c.fill();
+    eyes(2, -0.8, 0.9);
+    c.beginPath(); c.ellipse(x, y + 1.2 * k, 1.2 * k, 0.8 * k, 0, 0, 7); c.fillStyle = INK; c.fill();
+    c.beginPath(); c.ellipse(x, y + 3.4 * k, 0.9 * k, 1.2 * k, 0, 0, 7); c.fillStyle = '#FF66C4'; c.fill();
+  } else if (who === 'robot') {
+    rr(c, x - 5 * k, y - 3.6 * k, 10 * k, 8.4 * k, 1.6 * k); c.fillStyle = '#B8C0CC'; c.fill();
+    c.fillStyle = blink ? '#5C677D' : '#4CC9F0';
+    c.fillRect(x - 3.6 * k, y - 1.8 * k, 2.6 * k, 2.2 * k); c.fillRect(x + 1 * k, y - 1.8 * k, 2.6 * k, 2.2 * k);
+    c.fillStyle = INK; for (let i = 0; i < 4; i++) c.fillRect(x - 2.6 * k + i * 1.5 * k, y + 2 * k, 0.9 * k, 1.3 * k);
+    c.fillStyle = Math.floor(t * 2) % 2 ? '#F94144' : '#FFD60A'; c.beginPath(); c.arc(x, y - 4.6 * k, 1 * k, 0, 7); c.fill();
+  } else if (who === 'alien') {
+    c.strokeStyle = '#38B000'; c.lineWidth = Math.max(0.8, 0.7 * k);
+    for (const sx of [-1, 1]) { c.beginPath(); c.moveTo(x + sx * 2 * k, y - 3 * k); c.lineTo(x + sx * 3.4 * k, y - 6 * k); c.stroke(); c.beginPath(); c.arc(x + sx * 3.4 * k, y - 6 * k, 0.9 * k, 0, 7); c.fillStyle = '#B5E48C'; c.fill(); }
+    oval('#80ED99', 5.2, 4.8, 0.4);
+    if (!blink) for (const sx of [-1, 1]) { c.beginPath(); c.ellipse(x + sx * 2.3 * k, y - 0.4 * k, 1.5 * k, 2 * k, sx * 0.35, 0, 7); c.fillStyle = INK; c.fill(); c.beginPath(); c.arc(x + sx * 2 * k, y - 1 * k, 0.5 * k, 0, 7); c.fillStyle = '#fff'; c.fill(); }
+    smile(2.2, 1.6);
+  } else if (who === 'bear') {
+    for (const sx of [-1, 1]) { c.beginPath(); c.arc(x + sx * 4.2 * k, y - 3.6 * k, 1.9 * k, 0, 7); c.fillStyle = '#8B5E34'; c.fill(); c.beginPath(); c.arc(x + sx * 4.2 * k, y - 3.6 * k, 0.9 * k, 0, 7); c.fillStyle = '#E6B98A'; c.fill(); }
+    oval('#A9713F', 5.4, 4.6, 0.5);
+    c.beginPath(); c.ellipse(x, y + 2 * k, 2.6 * k, 2 * k, 0, 0, 7); c.fillStyle = '#E6B98A'; c.fill();
+    eyes(2.2, -0.8, 0.9);
+    c.beginPath(); c.ellipse(x, y + 1.2 * k, 1.1 * k, 0.8 * k, 0, 0, 7); c.fillStyle = INK; c.fill();
+    smile(2, 1.3);
+  } else if (who === 'unicorn') {
+    tri(-1.2, -3.4, 1.2, -3.4, 0.4, -8, '#FFD60A');
+    for (const sx of [-1, 1]) tri(sx * 4.6, -2, sx * 4, -5.6, sx * 2, -3.4, '#FFFFFF');
+    oval('#FFFFFF', 5.2, 4.6, 0.5);
+    c.beginPath(); c.ellipse(x - 3.6 * k, y - 2.6 * k, 2.4 * k, 1.5 * k, -0.5, 0, 7); c.fillStyle = '#FF66C4'; c.fill();
+    c.beginPath(); c.ellipse(x - 4.8 * k, y - 0.4 * k, 1.4 * k, 2 * k, 0.2, 0, 7); c.fillStyle = '#9B5DE5'; c.fill();
+    eyes(2, -0.4, 1, '#3A0CA3');
+    c.fillStyle = 'rgba(255,102,196,0.6)'; c.beginPath(); c.arc(x - 3 * k, y + 1.8 * k, 1 * k, 0, 7); c.arc(x + 3 * k, y + 1.8 * k, 1 * k, 0, 7); c.fill();
+    smile(1.8, 1.6);
+  } else {
+    oval('#FFD7B5');
+    c.beginPath(); c.ellipse(x, y - 3 * k, 4.6 * k, 1.8 * k, 0, Math.PI, 0); c.fillStyle = '#8B5E34'; c.fill();
+    eyes();
+    smile();
+  }
+  c.restore();
+}
+export function astronautHead(c, x, y, k, t = 0, who = PILOT) {
+  c.beginPath(); c.arc(x, y, 8 * k, 0, 7); c.fillStyle = '#FFFFFF'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = INK; c.stroke();
+  c.save(); c.beginPath(); c.arc(x, y, 7.6 * k, 0, 7); c.clip();
+  pilotFace(c, x, y, k, t, who);
+  c.restore();
 }
 
 function drawFins(c, fins, g, col, lw) {
@@ -513,7 +577,7 @@ export function drawRover(c, x, y, s, wheel = 0, t = 0) {
   c.restore();
 }
 
-export function drawAstronaut(c, x, y, s, { t = 0, wave = false, walk = 0, color = '#3A86FF', flip = false } = {}) {
+export function drawAstronaut(c, x, y, s, { t = 0, wave = false, walk = 0, color = '#3A86FF', flip = false, who = null } = {}) {
   c.save(); c.translate(x, y); c.scale(flip ? -s : s, s); c.lineWidth = 2.5; c.strokeStyle = INK; c.lineJoin = 'round'; c.lineCap = 'round';
   const leg = Math.sin(walk) * 6;
   // backpack
@@ -538,9 +602,7 @@ export function drawAstronaut(c, x, y, s, { t = 0, wave = false, walk = 0, color
   // helmet
   c.lineWidth = 2.5; c.strokeStyle = INK;
   c.beginPath(); c.arc(0, -50, 13, 0, 7); c.fillStyle = '#F4F6FA'; c.fill(); c.stroke();
-  c.beginPath(); c.ellipse(2, -50, 9, 7.5, 0, 0, 7); c.fillStyle = '#FFD7B5'; c.fill(); c.stroke();
-  c.fillStyle = INK; c.beginPath(); c.arc(-1, -51, 1.3, 0, 7); c.arc(5, -51, 1.3, 0, 7); c.fill();
-  c.beginPath(); c.arc(2, -48, 3, 0.15 * Math.PI, 0.85 * Math.PI); c.lineWidth = 1.5; c.stroke();
+  c.save(); c.beginPath(); c.arc(0, -50, 12, 0, 7); c.clip(); pilotFace(c, 1.5, -50, 1.5, t, who || PILOT); c.restore();
   c.beginPath(); c.arc(-3, -55, 3, Math.PI, 1.5 * Math.PI); c.strokeStyle = 'rgba(255,255,255,0.9)'; c.lineWidth = 2; c.stroke();
   c.restore();
 }
@@ -572,7 +634,7 @@ export function drawStation(c, x, y, s, t = 0) {
   rr(c, -112, -10, 24, 20, 5); c.fillStyle = '#CED4DA'; c.fill(); c.stroke();
   c.beginPath(); c.arc(-112, 0, 5, 0, 7); c.fillStyle = Math.floor(t * 2) % 2 ? '#80ED99' : '#2D6A4F'; c.fill(); c.stroke();
   // windows with friends
-  for (const wx of [-20, 18]) { c.beginPath(); c.arc(wx, 0, 9, 0, 7); c.fillStyle = '#9EE6FF'; c.fill(); c.stroke(); c.save(); c.beginPath(); c.arc(wx, 0, 9, 0, 7); c.clip(); astronautHead(c, wx, 2, 0.9, t + wx); c.restore(); }
+  for (const wx of [-20, 18]) { c.beginPath(); c.arc(wx, 0, 9, 0, 7); c.fillStyle = '#9EE6FF'; c.fill(); c.stroke(); c.save(); c.beginPath(); c.arc(wx, 0, 9, 0, 7); c.clip(); astronautHead(c, wx, 2, 0.9, t + wx, wx < 0 ? 'kid' : 'bear'); c.restore(); }
   c.restore();
 }
 
@@ -649,6 +711,14 @@ export function drawThumb(c, cat, item, build, size, t = 0) {
   c.clearRect(0, 0, size, size);
   const cx = size / 2;
   const b = { ...build };
+  if (cat === 'pilot') {
+    c.beginPath(); c.arc(cx, cx, size * 0.4, 0, 7); c.fillStyle = '#F4F6FA'; c.fill(); c.lineWidth = 4; c.strokeStyle = INK; c.stroke();
+    c.save(); c.beginPath(); c.arc(cx, cx, size * 0.37, 0, 7); c.clip();
+    c.fillStyle = '#9EE6FF'; c.fillRect(0, 0, size, size);
+    pilotFace(c, cx, cx + size * 0.03, size / 19, t, item.id);
+    c.restore();
+    return;
+  }
   if (cat === 'color') {
     c.beginPath(); c.arc(cx, cx, size * 0.34, 0, 7); c.fillStyle = item.hex; c.fill(); c.lineWidth = 4; c.strokeStyle = INK; c.stroke();
     c.beginPath(); c.arc(cx - size * 0.1, cx - size * 0.1, size * 0.08, 0, 7); c.fillStyle = 'rgba(255,255,255,0.6)'; c.fill();
@@ -710,4 +780,42 @@ export function drawThumb(c, cat, item, build, size, t = 0) {
 function noneMark(c, size) {
   c.beginPath(); c.arc(size / 2, size / 2, size * 0.26, 0, 7); c.lineWidth = 6; c.strokeStyle = '#ADB5BD'; c.stroke();
   c.beginPath(); c.moveTo(size * 0.32, size * 0.68); c.lineTo(size * 0.68, size * 0.32); c.stroke();
+}
+
+// Little moon lander used by the Moon Lander game. (x, y) is where the feet touch.
+export function drawLanderShip(c, x, y, s, b, t = 0, { flame = 0, tilt = 0, mood = null } = {}) {
+  c.save(); c.translate(x, y); c.rotate(tilt); c.scale(s, s); c.lineWidth = 3; c.strokeStyle = INK; c.lineJoin = 'round'; c.lineCap = 'round';
+  if (flame > 0) drawFlame(c, b, 0, -6, 18, flame, t);
+  for (const sx of [-1, 1]) {
+    c.beginPath(); c.moveTo(sx * 22, -26); c.lineTo(sx * 40, 0); c.moveTo(sx * 18, -14); c.lineTo(sx * 40, 0); c.stroke();
+    rr(c, sx * 40 - 8, -3, 16, 5, 2); c.fillStyle = '#ADB5BD'; c.fill(); c.stroke();
+  }
+  c.beginPath(); c.moveTo(-26, -44); c.lineTo(26, -44); c.lineTo(30, -16); c.lineTo(-30, -16); c.closePath(); c.fillStyle = '#E9B949'; c.fill(); c.stroke();
+  c.beginPath(); c.moveTo(-8, -16); c.lineTo(8, -16); c.lineTo(11, -6); c.lineTo(-11, -6); c.closePath(); c.fillStyle = '#5C677D'; c.fill(); c.stroke();
+  c.beginPath(); c.moveTo(-20, -44); c.lineTo(20, -44); c.lineTo(22, -66); c.lineTo(10, -80); c.lineTo(-10, -80); c.lineTo(-22, -66); c.closePath();
+  c.fillStyle = lighten(hex(b.color), 0.55); c.fill(); c.stroke();
+  c.fillStyle = hex(b.color2); c.fillRect(-19, -52, 38, 5);
+  c.beginPath(); c.arc(0, -64, 10, 0, 7); c.fillStyle = '#9EE6FF'; c.fill(); c.stroke();
+  c.save(); c.beginPath(); c.arc(0, -64, 9, 0, 7); c.clip(); pilotFace(c, 0, -63.5, 1.5, t, b.pilot || 'kid'); c.restore();
+  c.restore();
+}
+// A ringed or striped planet for Star Dash finish lines.
+export function drawPlanet(c, x, y, r, kind = 'jupiter', t = 0) {
+  const P = {
+    jupiter: ['#E8B07A', ['#C98B5B', '#F3D2A2', '#B5651D']], saturn: ['#F1DCA7', ['#D9B878']], uranus: ['#9BE3E8', ['#7FD4DB']],
+    neptune: ['#4F7BEA', ['#3A5FCB', '#7AA0FF']], pluto: ['#D9C7B8', ['#BFA898']], venus: ['#F6C667', ['#E8A93A']],
+  }[kind] || ['#B8C0CC', ['#8D99AE']];
+  c.save();
+  if (kind === 'saturn' || kind === 'uranus') { c.beginPath(); c.ellipse(x, y, r * 1.7, r * 0.42, -0.25, Math.PI, Math.PI * 2); c.lineWidth = r * 0.16; c.strokeStyle = kind === 'saturn' ? '#CDB277' : '#C9F3F6'; c.stroke(); }
+  c.beginPath(); c.arc(x, y, r, 0, 7); c.fillStyle = P[0]; c.fill();
+  c.save(); c.clip();
+  P[1].forEach((col, i) => { c.fillStyle = col; c.fillRect(x - r, y - r * 0.55 + i * r * 0.5, r * 2, r * 0.2); });
+  if (kind === 'jupiter') { c.beginPath(); c.ellipse(x + r * 0.35, y + r * 0.3, r * 0.22, r * 0.13, 0, 0, 7); c.fillStyle = '#C1440E'; c.fill(); }
+  if (kind === 'pluto') { c.beginPath(); c.arc(x + r * 0.15, y + r * 0.25, r * 0.4, 0, 7); c.fillStyle = '#F4EDE4'; c.fill(); }
+  const sh = c.createLinearGradient(x - r, y, x + r, y); sh.addColorStop(0, 'rgba(255,255,255,0.18)'); sh.addColorStop(1, 'rgba(0,0,30,0.38)');
+  c.fillStyle = sh; c.fillRect(x - r, y - r, r * 2, r * 2);
+  c.restore();
+  c.beginPath(); c.arc(x, y, r, 0, 7); c.lineWidth = 3; c.strokeStyle = INK; c.stroke();
+  if (kind === 'saturn' || kind === 'uranus') { c.beginPath(); c.ellipse(x, y, r * 1.7, r * 0.42, -0.25, 0, Math.PI); c.lineWidth = r * 0.16; c.strokeStyle = kind === 'saturn' ? '#CDB277' : '#C9F3F6'; c.stroke(); }
+  c.restore();
 }

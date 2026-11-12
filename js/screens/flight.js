@@ -3,6 +3,7 @@ import { h, btn, icon, onTap, onHold, toast, modal } from '../ui.js';
 import { say, hush } from '../voice.js';
 import { sfx, setEngine } from '../audio.js';
 import { state, save, level, newUnlocks } from '../state.js';
+import { pilotFace, setPilot } from '../draw.js';
 import { MISSIONS, H as ALT, VORB, DV, findPart, G_EARTH } from '../data.js';
 import { Craft, stepPhysics, readyToTip, TIP_FAIL } from '../sim.js';
 import {
@@ -37,6 +38,7 @@ export function flightScreen(app, params) {
   const plan = M ? M.id : 'park';
   const seq = PLANS[plan];
   const b = JSON.parse(JSON.stringify(state.build));
+  setPilot(b.pilot);
   const cap = findPart('capsule', b.capsule);
   const orbital = !['clouds', 'sky', 'space'].includes(plan);
   const sea = M ? M.landing === 'sea' : false;
@@ -179,7 +181,8 @@ export function flightScreen(app, params) {
     const out = { clouds: [], birds: [], planes: [], balloons: [], sats: [] };
     for (let i = 0; i < 26; i++) out.clouds.push({ x: (prand(i) - 0.5) * 1600, y: 180 + prand(i + 50) * 1300, s: 0.6 + prand(i + 9) * 0.9 });
     for (let i = 0; i < 6; i++) out.birds.push({ x: (prand(i + 3) - 0.5) * 900, y: 90 + prand(i + 7) * 300, v: 30 + prand(i) * 40 });
-    out.balloons.push({ x: -220, y: 820 }, { x: 260, y: 1150 });
+    out.balloons.push({ x: -220, y: 820, col: '#FF66C4' }, { x: 260, y: 1150, col: '#4CC9F0' }, { x: -120, y: 330, col: '#80ED99' }, { x: 230, y: 560, col: '#FFD60A' });
+    out.ufos = [{ x: -260, y: 2500, spin: 0 }, { x: 250, y: 3500, spin: 0 }];
     out.planes.push({ x: -300, y: 1550, v: 90 }, { x: 400, y: 1900, v: -110 });
     for (let i = 0; i < 4; i++) out.sats.push({ x: (prand(i + 21) - 0.5) * 1000, y: 3300 + prand(i + 40) * 1600 });
     return out;
@@ -208,7 +211,8 @@ export function flightScreen(app, params) {
     // decorations
     for (const d of decor.clouds) if (Math.abs(-d.y + camAlt) < H) drawCloud(c, d.x + Math.sin(t * 0.2 + d.x) * 10, -d.y, d.s, 0.92);
     for (const d of decor.birds) if (camAlt < 900) drawBird(c, ((d.x + t * d.v + 1200) % 2400) - 1200, -d.y + Math.sin(t * 3 + d.x) * 6, t);
-    for (const d of decor.balloons) if (Math.abs(-d.y + camAlt) < H) drawBalloon(c, d.x, -d.y + Math.sin(t) * 8);
+    for (const d of decor.balloons) if (!d.popped && Math.abs(-d.y + camAlt) < H) drawBalloon(c, d.x, -d.y + Math.sin(t) * 8, d.col);
+    for (const d of decor.ufos) if (Math.abs(-d.y + camAlt) < H) drawUfo(c, d.x + Math.sin(t * 0.7 + d.y) * 30, -d.y + Math.sin(t * 2) * 6, d, t);
     for (const d of decor.planes) if (Math.abs(-d.y + camAlt) < H) drawPlane(c, ((d.x + t * d.v + 1400) % 2800) - 1400, -d.y, d.v < 0);
     for (const d of decor.sats) if (Math.abs(-d.y + camAlt) < H) drawSatellite(c, d.x, -d.y, 0.5, 1, t);
     c.restore();
@@ -251,10 +255,32 @@ export function flightScreen(app, params) {
     c.strokeStyle = INK; c.lineWidth = 3; c.beginPath();
     c.moveTo(x - 12, y - f); c.quadraticCurveTo(x - 6, y - 6, x, y); c.quadraticCurveTo(x + 6, y - 6, x + 12, y - f); c.stroke();
   }
-  function drawBalloon(c, x, y) {
+  // Tap the balloons to pop them and the flying saucers to say hello.
+  function tapDecor(px, py, ph) {
+    const ox = app.W / 2 - ph.camX, oy = app.H * 0.62 + ph.camAlt;
+    for (const d of decor.balloons) if (!d.popped && Math.hypot(px - (ox + d.x), py - (oy - d.y)) < 70) {
+      d.popped = true; sfx.pop(); sfx.giggle(); F.collected++;
+      for (let i = 0; i < 14; i++) F.fx.push({ x: px, y: py, vx: rand(-260, 260), vy: rand(-320, 80), life: 0, max: rand(0.8, 1.4), r: rand(8, 13), grow: 0, col: [d.col, '#fff', '#FFD60A'][i % 3], kind: 'confetti', rot: 0, vr: rand(-8, 8), g: 500 });
+      say('Pop!', { interrupt: false }); return;
+    }
+    for (const d of decor.ufos) if (Math.hypot(px - (ox + d.x), py - (oy - d.y)) < 90) {
+      d.spin = 1; sfx.giggle(); if (!d.hi) { d.hi = true; F.collected++; }
+      say('The aliens say hello!', { interrupt: false }); return;
+    }
+  }
+  function drawUfo(c, x, y, d, t) {
+    d.spin = Math.max(0, d.spin - 0.02);
+    c.save(); c.translate(x, y); c.rotate(Math.sin(d.spin * 12) * 0.4 * d.spin); c.lineWidth = 3; c.strokeStyle = INK;
+    c.beginPath(); c.arc(0, -8, 26, Math.PI, 0); c.closePath(); c.fillStyle = 'rgba(180,230,255,0.85)'; c.fill(); c.stroke();
+    pilotFace(c, 0, -16, 2, t, 'alien');
+    c.beginPath(); c.ellipse(0, 0, 58, 16, 0, 0, 7); c.fillStyle = '#B8C0CC'; c.fill(); c.stroke();
+    for (let i = -2; i <= 2; i++) { c.beginPath(); c.arc(i * 20, 2, 4, 0, 7); c.fillStyle = Math.floor(t * 3 + i) % 2 ? '#FFD60A' : '#FF66C4'; c.fill(); }
+    c.restore();
+  }
+  function drawBalloon(c, x, y, col = '#FF66C4') {
     c.lineWidth = 3; c.strokeStyle = INK;
     c.beginPath(); c.moveTo(x - 14, y + 30); c.lineTo(x - 8, y + 48); c.moveTo(x + 14, y + 30); c.lineTo(x + 8, y + 48); c.stroke();
-    c.beginPath(); c.arc(x, y, 34, 0, 7); c.fillStyle = '#FF66C4'; c.fill();
+    c.beginPath(); c.arc(x, y, 34, 0, 7); c.fillStyle = col; c.fill();
     c.save(); c.clip(); c.fillStyle = '#FFD60A'; c.fillRect(x - 10, y - 40, 20, 80); c.restore();
     c.beginPath(); c.arc(x, y, 34, 0, 7); c.stroke();
     rr(c, x - 10, y + 46, 20, 14, 3); c.fillStyle = '#8B5E34'; c.fill(); c.stroke();
@@ -306,6 +332,7 @@ export function flightScreen(app, params) {
       };
       controls({ boost: true, steer: true, boom: true, gauge: true, pulseBoost: true });
       renderGauge();
+      ph.tap = (x, y) => tapDecor(x, y, ph);
       hint('boost', 'Hold the fire button to blast off!');
       F.checkpoint = null;
     },
@@ -344,7 +371,7 @@ export function flightScreen(app, params) {
       if (!orbital && !ph.reached && st.h >= ph.target) {
         ph.reached = true; sfx.fanfare();
         toast(plan === 'space' ? 'SPACE!' : plan === 'sky' ? 'SO HIGH!' : 'CLOUDS!');
-        say(`You made it to ${TARGET_NAME[plan]}!`);
+        say({ clouds: 'You made it to the clouds!', sky: 'You zoomed past the airplanes!', space: 'You made it to space!' }[plan]);
       }
       // orbital: time to tip over
       if (orbital && st.mode === 'up' && !ph.tipWait && readyToTip(st)) {
@@ -425,8 +452,9 @@ export function flightScreen(app, params) {
       ph.ground = o.ground || (sea ? 'sea' : 'land');
       ph.s = clamp(Math.max(o.s ?? 0, app.H * 0.24 / 120), 0.5, 1.5);
       ph.chute = 0; ph.open = false; ph.landed = false; ph.urged = false;
+      ph.tap = (x, y) => tapDecor(x, y, ph);
       F.checkpoint = { name: 'descent', opts: { h: 1000, vy: -160, x: ph.x, ground: ph.ground, s: ph.s } };
-      action('chute', () => { ph.open = true; sfx.chute(); hint(null, '', false); say('Parachute open! Wheee!'); });
+      action('chute', () => { ph.open = true; sfx.chute(); hint(null, '', false); say('Parachute open! Whee!'); });
       hint('chute', ph.h > 1400 ? 'Get ready to tap the parachute!' : 'Tap the parachute!');
       if (!o.camAlt && ph.ground === 'sea') say('Get ready to open the parachute!', { interrupt: false });
     },
@@ -599,7 +627,7 @@ export function flightScreen(app, params) {
       } else if (plan === 'station') {
         ph.step = 'toStation';
       } else {
-        hint(null, 'Wheee! Around the world we go!');
+        hint(null, 'Whee! Around the world we go!');
       }
     },
     update(ph, dt) {
@@ -1152,7 +1180,7 @@ export function flightScreen(app, params) {
       setEngine(Math.abs(ph.v) > 5 ? 0.15 : 0);
       for (const r of ph.rocks) if (!r.got && Math.abs(r.x - ph.rx) < 40) {
         r.got = true; ph.found++; F.collected++; sfx.star(); sparkle(r.x, -20);
-        say(['Ooh, a shiny rock!', 'Another one! So sparkly!', 'A Mars treasure! You found them all!'][ph.found - 1]);
+        say(['Wow, a shiny rock!', 'Another one! So sparkly!', 'A Mars treasure! You found them all!'][ph.found - 1]);
         if (ph.found === 3) { ph.doneT = 0.001; controls({}); toast('TREASURE!'); sfx.fanfare(); }
       }
       if (ph.doneT) { ph.doneT += dt; if (ph.doneT > 3 && !ph.done) { ph.done = true; finish(); } }
@@ -1258,7 +1286,7 @@ export function flightScreen(app, params) {
         k === 'hold' ? 'Remember to hold the fire button the whole time!' :
           'Add more stages or bigger stages to go farther!';
       sfx.oops();
-      say('Almost! ' + msg);
+      say(['Almost!', msg]);
       showCard({
         title: 'Almost!', text: msg,
         buttons: [
@@ -1270,7 +1298,7 @@ export function flightScreen(app, params) {
       return;
     }
     if (!M) {
-      sfx.fanfare(); say('What a flight! You collected ' + F.collected + (F.collected === 1 ? ' star!' : ' stars!'));
+      sfx.fanfare(); say('What a flight! Look at all those stars!');
       showCard({
         title: 'What a flight!', stars: Math.min(3, 1 + (F.collected >= 3 ? 1 : 0) + (F.collected >= 6 ? 1 : 0)),
         buttons: [
@@ -1290,7 +1318,7 @@ export function flightScreen(app, params) {
     const unlocks = newUnlocks(before, after);
     sfx.fanfare();
     for (let i = 0; i < 40; i++) F.fx.push({ x: app.W / 2, y: app.H * 0.3, vx: rand(-500, 500), vy: rand(-600, -100), life: 0, max: rand(1.5, 2.5), r: rand(8, 14), grow: 0, col: ['#FFD60A', '#FF66C4', '#4CC9F0', '#80ED99', '#F94144'][i % 5], kind: 'confetti', rot: 0, vr: rand(-8, 8), g: 500 });
-    say(M.win + (stars === 3 ? ' Three stars!' : ''));
+    say([M.win, stars === 3 ? 'Three stars!' : null]);
     const goNext = () => {
       if (unlocks.length) showUnlocks(unlocks); else app.go('map');
     };
@@ -1315,7 +1343,7 @@ export function flightScreen(app, params) {
       grid.append(t);
     });
     const names = list.map(u => u.item.name);
-    say('New rocket parts! ' + (names.length > 1 ? names.slice(0, -1).join(', ') + ', and ' + names[names.length - 1] : names[0]) + '!');
+    say(['New rocket parts!', ...names.slice(0, 5).map(n => n + '!')]);
     sfx.chime();
     showCard({
       title: 'New parts!', extra: grid,

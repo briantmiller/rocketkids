@@ -1,16 +1,19 @@
 // RocketKids — app shell, render loop and screen router.
 import { state, load, save, reset } from './state.js';
-import { sound, sfx, unlockAudio, setEngine } from './audio.js';
+import { sound, sfx, unlockAudio, setEngine, music, setMusic, pauseAudio } from './audio.js';
 import { voice, say, hush } from './voice.js';
 import { h, btn, modal, onTap } from './ui.js';
 import { titleScreen } from './screens/title.js';
 import { mapScreen } from './screens/map.js';
 import { hangarScreen } from './screens/hangar.js';
 import { flightScreen } from './screens/flight.js';
+import { arcadeScreen } from './screens/arcade.js';
+import { gameScreen } from './screens/game.js';
 
 load();
 sound.on = state.settings.sound;
 voice.on = state.settings.voice;
+music.on = state.settings.music;
 
 const canvas = document.getElementById('stage');
 const ctx = canvas.getContext('2d');
@@ -26,7 +29,7 @@ window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 200));
 resize();
 
-const SCREENS = { title: titleScreen, map: mapScreen, hangar: hangarScreen, flight: flightScreen };
+const SCREENS = { title: titleScreen, map: mapScreen, hangar: hangarScreen, flight: flightScreen, arcade: arcadeScreen, game: gameScreen };
 export function go(name, params = {}) {
   if (app.scene && app.scene.exit) app.scene.exit();
   setEngine(0);
@@ -36,6 +39,7 @@ export function go(name, params = {}) {
   app.sceneName = name;
 }
 app.go = go;
+window.__rk = app; // handy for testing
 
 // ?speed=N runs the game faster (used for testing).
 const SPEED = Math.max(1, Math.min(8, +new URLSearchParams(location.search).get('speed') || 1));
@@ -57,6 +61,7 @@ requestAnimationFrame(frame);
 // Stop stuck sounds when the app is hidden.
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { setEngine(0); hush(); if (app.scene && app.scene.pause) app.scene.pause(); }
+  pauseAudio(document.hidden);
 });
 
 // iOS only lets sound start from a touch: unlock on the first touch/click.
@@ -81,7 +86,7 @@ export function openSettings() {
   };
   let m;
   const unlockBtn = btn('blue', null, state.unlockAll ? 'Use normal progress' : 'Unlock everything', () => {
-    state.unlockAll = !state.unlockAll; save(); m.close(); go(app.sceneName === 'hangar' ? 'map' : app.sceneName === 'flight' ? 'map' : app.sceneName);
+    state.unlockAll = !state.unlockAll; save(); m.close(); go(['title', 'map', 'arcade'].includes(app.sceneName) ? app.sceneName : 'map');
   });
   let confirmReset = false;
   const resetBtn = btn('red', null, 'Reset progress', () => {
@@ -92,6 +97,7 @@ export function openSettings() {
     h('h1', {}, 'Grown-ups'),
     h('div', { class: 'setrow' }, h('span', {}, 'Talking voice'), toggle('voice', v => { voice.on = v; if (!v) hush(); })),
     h('div', { class: 'setrow' }, h('span', {}, 'Sounds'), toggle('sound', v => { sound.on = v; if (!v) setEngine(0); })),
+    h('div', { class: 'setrow' }, h('span', {}, 'Music'), toggle('music', v => setMusic(v))),
     h('div', { class: 'setrow' }, h('div', {}, h('div', {}, 'Crashes go BOOM'), h('div', { class: 'small' }, 'Off: a gentle bump. On: a silly cartoon explosion.')), toggle('boomCrash')),
     h('div', { class: 'setrow' }, h('div', { class: 'small' }, `Missions finished: ${state.done} of 9. The red BOOM button in flight always makes a silly explosion, and the astronaut always floats home safely.`)),
     h('div', { class: 'acts' }, unlockBtn, resetBtn, btn('green', null, 'Done', () => m.close())),

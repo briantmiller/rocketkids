@@ -4,7 +4,7 @@ import { sfx } from '../audio.js';
 import { state, save, isUnlocked, stageLimit, level } from '../state.js';
 import { CATALOG, COLORS, TABS, MISSIONS, DEFAULT_BUILD, findPart, LEVEL_NAMES } from '../data.js';
 import { MISSION_ICON, ICON } from '../icons.js';
-import { drawThumb, drawRocket, rocketLayout, INK, rr } from '../draw.js';
+import { drawThumb, drawRocket, rocketLayout, INK, rr, setPilot } from '../draw.js';
 import { evaluate } from '../sim.js';
 
 const LEVEL_ICON = [null, 'cloud', 'plane', 'stars', 'earth', 'moonloop', 'mars'];
@@ -12,7 +12,7 @@ const STAGE_ORDER = ['super', 'big', 'medium', 'small'];
 
 // Keep the saved build valid for the current progress.
 export function sanitizeBuild(b) {
-  for (const cat of ['capsule', 'booster', 'fins', 'chute', 'cargo', 'pattern', 'style', 'flame']) {
+  for (const cat of ['pilot', 'capsule', 'booster', 'fins', 'chute', 'cargo', 'pattern', 'style', 'flame']) {
     const it = CATALOG[cat].find(p => p.id === b[cat]);
     if (!it || !isUnlocked(cat, it)) b[cat] = DEFAULT_BUILD[cat];
   }
@@ -32,7 +32,7 @@ export function missingNeeds(b, m) {
   if (m.needs.mars && !cap.mars) out.push({ tab: 'capsule', item: 'marsship', say: 'You need the Mars Ship for this trip. Tap the capsules!' });
   else if (m.needs.lander && !cap.lander) out.push({ tab: 'capsule', item: 'moonship', say: 'You need the Moon Ship with the lander. Tap the capsules!' });
   else if (m.needs.shield && !cap.shield) out.push({ tab: 'capsule', item: 'explorer', say: 'You need a capsule with a heat shield to come home from space. Tap the capsules!' });
-  if (m.needs.cargo && b.cargo !== m.needs.cargo) out.push({ tab: 'cargo', item: m.needs.cargo, say: `Don't forget the ${findPart('cargo', m.needs.cargo).name}! Tap the cargo box.` });
+  if (m.needs.cargo && b.cargo !== m.needs.cargo) out.push({ tab: 'cargo', item: m.needs.cargo, say: m.needs.cargo === 'rover' ? 'Don\'t forget the Mars rover! Tap the cargo box.' : 'Don\'t forget the satellite! Tap the cargo box.' });
   return out;
 }
 
@@ -40,6 +40,7 @@ export function hangarScreen(app, params) {
   const mi = params.mission ?? 0;
   const M = MISSIONS[mi] || null;
   const b = sanitizeBuild(state.build);
+  setPilot(b.pilot);
   save();
   let tab = params.tab || 'stage';
   let bounce = 0, lastScore = null;
@@ -64,14 +65,25 @@ export function hangarScreen(app, params) {
   const marks = [];
   for (let L = 1; L <= 6; L++) {
     const mk = h('div', { class: 'mark' + (M && M.target === L ? ' goal' : '') }, h('i', { html: MISSION_ICON[LEVEL_ICON[L]] }));
-    onTap(mk, () => say(`This rocket line shows ${['', 'the clouds', 'the airplanes', 'space', 'orbit around the Earth', 'the Moon', 'Mars'][L]}.`));
+    onTap(mk, () => say(['', 'This mark is the clouds.', 'This mark is as high as the airplanes.', 'This mark is space.', 'This mark is orbit, all the way around the Earth.', 'This mark is the Moon.', 'This mark is Mars.'][L]));
     marks.push(mk); meter.append(mk);
   }
   preview.append(meter);
+  // Surprise me! Random colors, pattern, fins and more.
+  const dice = btn('purple dice', 'dice', null, () => {
+    const pick = (cat) => { const a = (cat === 'color' ? COLORS : CATALOG[cat]).filter(it => isUnlocked(cat, it) && it.id !== 'none'); return a[Math.floor(Math.random() * a.length)].id; };
+    b.color = pick('color'); do { b.color2 = pick('color'); } while (b.color2 === b.color);
+    for (const cat of ['pattern', 'style', 'flame', 'fins', 'chute', 'pilot']) b[cat] = pick(cat);
+    setPilot(b.pilot); sfx.giggle(); bounce = 1;
+    say(['Surprise!', 'Ta da! A brand new look!', 'Wow, look at that rocket!', 'So fancy!'][Math.floor(Math.random() * 4)]);
+    changed();
+  });
+  dice.setAttribute('aria-label', 'Surprise me');
+  preview.append(dice);
   onTap(preview, e => {
-    if (e.target.closest('.meter')) return;
+    if (e.target.closest('.meter') || e.target.closest('.dice')) return;
     bounce = 1; sfx.boing();
-    say(['Hi there!', 'Ready to fly!', 'Let\'s go to space!', 'Hee hee, that tickles!'][Math.floor(Math.random() * 4)]);
+    say(['Hello there!', 'Ready to fly!', 'Let\'s go to space!', 'Hee hee, that tickles!'][Math.floor(Math.random() * 4)]);
   });
 
   // ----- parts panel -----
@@ -120,9 +132,10 @@ export function hangarScreen(app, params) {
     const open = isUnlocked(cat, item);
     const t = h('button', { class: 'tile' + (on ? ' on' : '') + (open ? '' : ' locked'), 'aria-label': item.name }, thumbCanvas(cat, item));
     if (!open) t.append(h('span', { class: 'lk', html: ICON.lock }));
+    if (!open && item.mg != null) t.append(h('span', { class: 'needstars' }, h('i', { html: ICON.star }), String(item.mg)));
     if (extra) t.append(extra);
     onTap(t, () => {
-      if (!open) { sfx.locked(); say('That one is locked. Fly more missions to unlock it!'); return; }
+      if (!open) { sfx.locked(); say(item.mg != null ? 'Win more stars in the space games to unlock this friend!' : 'That one is locked. Fly more missions to unlock it!'); return; }
       onPick();
     });
     return t;
@@ -155,7 +168,7 @@ export function hangarScreen(app, params) {
             const top = b.stages.length - 1;
             if (b.stages[top] === it.id && b.stages.every(x => x === it.id)) { sfx.pick(); say(it.name + '!'); bounce = 1; return; }
             b.stages[top] = it.id; sortStages(b); sfx.pop();
-            say(lim === 1 ? `Swapped! Now you have the ${it.name}!` : `Swapped in the ${it.name}!`);
+            say(['Swapped!', it.name + '!']);
             bounce = 1; changed(); return;
           }
           b.stages.push(it.id); sortStages(b); sfx.pop(); say(it.name + '!'); bounce = 1; changed();
@@ -172,7 +185,7 @@ export function hangarScreen(app, params) {
     }
     for (const it of CATALOG[tab]) {
       tiles.append(tile(tab, it, b[tab] === it.id, () => {
-        b[tab] = it.id; sfx.pick(); say(it.name + '!'); bounce = 1; changed();
+        b[tab] = it.id; if (tab === 'pilot') setPilot(it.id); sfx.pick(); say(it.name + '!'); bounce = 1; changed();
       }));
     }
   }

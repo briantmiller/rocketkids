@@ -29,6 +29,14 @@ export const ICON = {
   next: S('<path d="M12 14 L36 32 L12 50 Z M32 14 L56 32 L32 50 Z" fill="#fff"/>'),
   rocket: S('<path d="M32 4 C44 14 46 30 44 44 L20 44 C18 30 20 14 32 4 Z" fill="#F94144"/><circle cx="32" cy="22" r="6" fill="#9EE6FF"/><path d="M20 36 L10 50 L20 48 M44 36 L54 50 L44 48" fill="#FFD60A"/><path d="M26 48 L32 60 L38 48" fill="#FB5607"/>'),
   park: S('<path d="M6 56 C14 40 26 38 32 44 C38 38 50 40 58 56 Z" fill="#38B000"/><path d="M32 4 C38 10 39 20 38 30 L26 30 C25 20 26 10 32 4 Z" fill="#fff"/><path d="M26 30 L32 40 L38 30" fill="#FFD60A"/>'),
+  dice: S('<rect x="8" y="8" width="48" height="48" rx="12" fill="#fff"/><circle cx="22" cy="22" r="5" fill="#1B1F3B" stroke="none"/><circle cx="42" cy="42" r="5" fill="#1B1F3B" stroke="none"/><circle cx="32" cy="32" r="5" fill="#F94144" stroke="none"/><circle cx="42" cy="22" r="5" fill="#1B1F3B" stroke="none"/><circle cx="22" cy="42" r="5" fill="#1B1F3B" stroke="none"/>'),
+  games: S('<rect x="4" y="18" width="56" height="32" rx="16" fill="#fff"/><path d="M18 28 L18 40 M12 34 L24 34" stroke-width="5"/><circle cx="42" cy="30" r="4" fill="#F94144"/><circle cx="50" cy="38" r="4" fill="#3A86FF"/>'),
+  jump: S('<path d="M32 6 L52 30 L40 30 L40 46 L24 46 L24 30 L12 30 Z" fill="#fff"/><path d="M18 56 L46 56" stroke-width="6"/>'),
+  heart: S('<path d="M32 54 C8 36 8 14 22 12 C28 11 31 15 32 19 C33 15 36 11 42 12 C56 14 56 36 32 54 Z" fill="#FF5A5F"/>'),
+  heartEmpty: S('<path d="M32 54 C8 36 8 14 22 12 C28 11 31 15 32 19 C33 15 36 11 42 12 C56 14 56 36 32 54 Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.5)"/>'),
+  gLander: S('<path d="M2 54 C16 46 48 46 62 54 L62 62 L2 62 Z" fill="#D9D9D9"/><path d="M22 34 L42 34 L45 20 L38 10 L26 10 L19 20 Z" fill="#fff"/><circle cx="32" cy="21" r="5" fill="#9EE6FF"/><rect x="20" y="34" width="24" height="8" fill="#E9B949"/><path d="M22 42 L14 52 M42 42 L50 52"/>'),
+  gDash: S('<path d="M32 4 C40 12 42 24 40 34 L24 34 C22 24 24 12 32 4 Z" fill="#F94144"/><circle cx="32" cy="18" r="5" fill="#9EE6FF"/><path d="M27 34 L32 46 L37 34" fill="#FFD60A"/><circle cx="12" cy="44" r="8" fill="#8D99AE"/><circle cx="52" cy="50" r="6" fill="#8D99AE"/><path d="M50 10 L52 16 L58 16 L53 20 L55 26 L50 22 L45 26 L47 20 L42 16 L48 16 Z" fill="#FFD60A" stroke-width="2"/>'),
+  gRover: S('<path d="M0 54 L64 54 L64 64 L0 64 Z" fill="#D9774A"/><rect x="12" y="26" width="38" height="12" rx="3" fill="#fff"/><path d="M40 26 L40 12"/><rect x="34" y="6" width="14" height="8" rx="3" fill="#fff"/><circle cx="18" cy="46" r="7" fill="#495057"/><circle cx="32" cy="46" r="7" fill="#495057"/><circle cx="46" cy="46" r="7" fill="#495057"/><path d="M56 30 L60 22 L52 20 Z" fill="#4CC9F0"/>'),
   close: S('<path d="M16 16 L48 48 M48 16 L16 48" stroke-width="9" stroke="#fff"/>'),
 };
 

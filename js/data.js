@@ -23,10 +23,20 @@ export const COLORS = [
 ];
 
 export const CATALOG = {
+  // Pilots with "mg" unlock by winning stars in the space games.
+  pilot: [
+    { id: 'kid', name: 'Astronaut', unlock: 0 },
+    { id: 'cat', name: 'Space cat', unlock: 0 },
+    { id: 'dog', name: 'Space puppy', mg: 3 },
+    { id: 'robot', name: 'Robot pilot', mg: 7 },
+    { id: 'alien', name: 'Friendly alien', mg: 12 },
+    { id: 'bear', name: 'Teddy bear', mg: 18 },
+    { id: 'unicorn', name: 'Unicorn', mg: 26 },
+  ],
   capsule: [
     { id: 'pod', name: 'Little Pod', unlock: 0, m: 1.0 },
     { id: 'bubble', name: 'Bubble Pod', unlock: 1, m: 1.0 },
-    { id: 'explorer', name: 'Explorer Capsule with a heat shield', unlock: 3, m: 1.5, shield: true },
+    { id: 'explorer', name: 'Explorer capsule with a heat shield', unlock: 3, m: 1.5, shield: true },
     { id: 'moonship', name: 'Moon Ship with a lander', unlock: 6, m: 2.4, shield: true, lander: true },
     { id: 'marsship', name: 'Mars Ship', unlock: 8, m: 2.0, shield: true, mars: true },
   ],
@@ -89,6 +99,7 @@ export const CATALOG = {
 };
 
 export const TABS = [
+  { id: 'pilot', name: 'Pilots' },
   { id: 'capsule', name: 'Capsules' },
   { id: 'stage', name: 'Rocket stages' },
   { id: 'booster', name: 'Boosters' },
@@ -106,7 +117,7 @@ export function maxStages(done) {
 }
 
 export const DEFAULT_BUILD = {
-  capsule: 'pod', stages: ['small'], booster: 'none', fins: 'small', chute: 'one',
+  pilot: 'kid', capsule: 'pod', stages: ['small'], booster: 'none', fins: 'small', chute: 'one',
   cargo: 'none', color: 'red', color2: 'white', pattern: 'stripes', style: 'classic', flame: 'orange',
 };
 
@@ -163,3 +174,10 @@ export function findPart(cat, id) {
   if (cat === 'color') return COLORS.find(c => c.id === id) || COLORS[0];
   return CATALOG[cat].find(p => p.id === id) || CATALOG[cat][0];
 }
+
+// ---------- Space games (mini-games) ----------
+export const GAMES = [
+  { id: 'lander', name: 'Moon Lander', icon: 'gLander', levels: 8, intro: 'Moon Lander! Hold the fire button to slow down, and land softly on the yellow target.' },
+  { id: 'dash', name: 'Star Dash', icon: 'gDash', levels: 8, intro: 'Star Dash! Slide your finger to steer. Catch the stars and dodge the space rocks.' },
+  { id: 'rover', name: 'Rover Rally', icon: 'gRover', levels: 8, intro: 'Rover Rally! Tap the jump button to hop over rocks and holes, and grab the gems.' },
+];
